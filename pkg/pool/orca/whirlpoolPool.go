@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	" github.com/gtdvccc/SolRouteTmp/pkg"
+	"github.com/gtdvccc/SolRouteTmp/pkg"
 	cosmath "cosmossdk.io/math"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
@@ -65,9 +65,9 @@ type WhirlpoolPool struct {
 	PoolId           solana.PublicKey // Pool ID (internal calculation)
 	UserBaseAccount  solana.PublicKey // User base token account
 	UserQuoteAccount solana.PublicKey // User quote token account
-	
+
 	// Tick array cache for real-time data (similar to CLMM)
-	TickArrayCache   map[string]WhirlpoolTickArray // Cache for real-time tick arrays
+	TickArrayCache map[string]WhirlpoolTickArray // Cache for real-time tick arrays
 }
 
 // WhirlpoolRewardInfo reward information structure - Reference external/orca/whirlpool/generated/types.go
@@ -423,7 +423,7 @@ func (pool *WhirlpoolPool) IsHealthy() (bool, error) {
 	if pool.TickSpacing > 64 {
 		return false, fmt.Errorf("tick spacing too large: %d (max recommended: 64)", pool.TickSpacing)
 	}
-	
+
 	// Check for extremely problematic tick spacings seen in error logs
 	problematicSpacings := []uint16{128, 256, 96, 32896}
 	for _, spacing := range problematicSpacings {
@@ -431,23 +431,23 @@ func (pool *WhirlpoolPool) IsHealthy() (bool, error) {
 			return false, fmt.Errorf("tick spacing matches known problematic value: %d", pool.TickSpacing)
 		}
 	}
-	
+
 	// Check fee rate - extremely high fees indicate potential problematic pools
 	// Fee rate is in basis points (1% = 10000)
 	if pool.FeeRate > 30000 { // 3% - raised to be less restrictive
 		return false, fmt.Errorf("fee rate too high: %d basis points (max recommended: 30000)", pool.FeeRate)
 	}
-	
+
 	// Check liquidity is reasonable (not zero, but also not suspiciously low)
 	if pool.Liquidity.IsZero() {
 		return false, fmt.Errorf("pool has zero liquidity")
 	}
-	
+
 	// Check sqrt price is valid
 	if pool.SqrtPrice.IsZero() {
 		return false, fmt.Errorf("pool has invalid sqrt price")
 	}
-	
+
 	// If cache exists, treat severely abnormal tick arrays as unhealthy (fail fast)
 	if pool.TickArrayCache != nil {
 		for _, tickArray := range pool.TickArrayCache {
@@ -456,7 +456,7 @@ func (pool *WhirlpoolPool) IsHealthy() (bool, error) {
 			}
 		}
 	}
-	
+
 	return true, nil
 }
 
@@ -494,17 +494,17 @@ func isCriticalTickArrayError(err error) bool {
 }
 
 // UpdateTickArrays fetches and caches real-time tick array data
-// Based on CLMM's real-time data fetching approach  
+// Based on CLMM's real-time data fetching approach
 // Note: This method only fetches data, doesn't perform validation that could block pool selection
 func (pool *WhirlpoolPool) UpdateTickArrays(ctx context.Context, solClient *rpc.Client) error {
 	// Try both directions to get comprehensive tick array data
 	directions := []bool{true, false} // A->B and B->A
-	
+
 	// Initialize cache if needed
 	if pool.TickArrayCache == nil {
 		pool.TickArrayCache = make(map[string]WhirlpoolTickArray)
 	}
-	
+
 	for _, aToB := range directions {
 		// Get required tick array addresses based on current tick and swap direction
 		tickArray0, tickArray1, tickArray2, err := DeriveMultipleWhirlpoolTickArrayPDAs(
@@ -517,10 +517,10 @@ func (pool *WhirlpoolPool) UpdateTickArrays(ctx context.Context, solClient *rpc.
 			// Log warning and try next direction
 			continue
 		}
-		
+
 		// Collect all tick array addresses
 		tickArrayAddrs := []solana.PublicKey{tickArray0, tickArray1, tickArray2}
-		
+
 		// Batch fetch all tick arrays (similar to CLMM approach)
 		results, err := solClient.GetMultipleAccountsWithOpts(ctx, tickArrayAddrs, &rpc.GetMultipleAccountsOpts{
 			Commitment: rpc.CommitmentProcessed,
@@ -529,26 +529,26 @@ func (pool *WhirlpoolPool) UpdateTickArrays(ctx context.Context, solClient *rpc.
 			// Log warning and try next direction
 			continue
 		}
-		
+
 		// Parse and cache tick array data
 		for _, result := range results.Value {
 			if result == nil {
 				continue // Skip uninitialized tick arrays
 			}
-			
+
 			tickArray := &WhirlpoolTickArray{}
 			err := tickArray.Decode(result.Data.GetBinary())
 			if err != nil {
 				// Log warning but continue with other tick arrays
 				continue
 			}
-			
+
 			// Cache using start tick index as key (similar to CLMM)
 			key := fmt.Sprintf("%d", tickArray.StartTickIndex)
 			pool.TickArrayCache[key] = *tickArray
 		}
 	}
-	
+
 	return nil
 }
 
@@ -619,7 +619,7 @@ func (pool *WhirlpoolPool) BuildSwapInstructions(
 
 	// 3. Calculate price limit (use exact protocol bounds as per official Whirlpool SDK)
 	var sqrtPriceLimit uint128.Uint128
-	
+
 	// Use exact protocol bounds (no buffer needed, per official implementation)
 	// Reference: whirlpools/legacy-sdk/whirlpool/src/utils/public/swap-utils.ts:57
 	if aToB {
@@ -715,16 +715,16 @@ func (pool *WhirlpoolPool) whirlpoolSwapCompute(
 	// Calculate target price based on available liquidity and swap direction
 	// Use a more conservative approach that considers pool constraints
 	targetPrice := sqrtPriceX64
-	
+
 	// Calculate more accurate price impact based on input amount and available liquidity
 	// Use proper CLMM formula: ΔP = ΔA / L (for A->B) or ΔP = ΔB * P^2 / L (for B->A)
 	liquidityImpact := amountSpecified.Abs().Mul(cosmath.NewInt(10000)).Quo(liquidity) // Scale by 10000 for better precision
-	
+
 	if zeroForOne {
 		// A -> B: price decreases
 		// More aggressive price movement based on actual liquidity impact
 		priceChangePercent := liquidityImpact.Quo(cosmath.NewInt(100)) // Convert to percentage
-		if priceChangePercent.GT(cosmath.NewInt(1000)) { // Max 10% change
+		if priceChangePercent.GT(cosmath.NewInt(1000)) {               // Max 10% change
 			priceChangePercent = cosmath.NewInt(1000)
 		}
 		if priceChangePercent.LT(cosmath.NewInt(10)) { // Min 0.1% change
@@ -737,7 +737,7 @@ func (pool *WhirlpoolPool) whirlpoolSwapCompute(
 	} else {
 		// B -> A: price increases
 		priceChangePercent := liquidityImpact.Quo(cosmath.NewInt(100)) // Convert to percentage
-		if priceChangePercent.GT(cosmath.NewInt(1000)) { // Max 10% change
+		if priceChangePercent.GT(cosmath.NewInt(1000)) {               // Max 10% change
 			priceChangePercent = cosmath.NewInt(1000)
 		}
 		if priceChangePercent.LT(cosmath.NewInt(10)) { // Min 0.1% change

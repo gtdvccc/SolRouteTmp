@@ -5,13 +5,13 @@ import (
 	"log"
 	"os"
 
-	" github.com/gtdvccc/SolRouteTmp/pkg/protocol"
-	" github.com/gtdvccc/SolRouteTmp/pkg/router"
-	" github.com/gtdvccc/SolRouteTmp/pkg/sol"
-	" github.com/gtdvccc/SolRouteTmp/utils"
 	"cosmossdk.io/math"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/gtdvccc/SolRouteTmp/pkg/protocol"
+	"github.com/gtdvccc/SolRouteTmp/pkg/router"
+	"github.com/gtdvccc/SolRouteTmp/pkg/sol"
+	"github.com/gtdvccc/SolRouteTmp/utils"
 )
 
 const (
@@ -22,7 +22,6 @@ const (
 	defaultAmountIn = 1000000000 // 1 sol (9 decimals)
 	slippageBps     = 100        // 1% slippage
 )
-
 
 func main() {
 	// Load .env if present

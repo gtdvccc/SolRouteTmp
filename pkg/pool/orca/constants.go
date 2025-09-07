@@ -10,7 +10,7 @@ import (
 // Program IDs
 var (
 	// Orca Whirlpool Program ID
-	ORCA_WHIRLPOOL_PROGRAM_ID = solana.MustPublicKeyFromBase58("whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc")
+	ORCA_WHIRLPOOL_PROGRAM_ID        = solana.MustPublicKeyFromBase58("whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc")
 	ORCA_WHIRLPOOL_DEVNET_PROGRAM_ID = solana.MustPublicKeyFromBase58("whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc")
 
 	// Standard Solana Program IDs

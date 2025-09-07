@@ -291,7 +291,7 @@ func getOfficialTickArrayStartIndex(tickIndex int64, tickSpacing int64, offset i
 	// JavaScript Math.floor(-1.1) = -2, Go math.Floor(-1.1) = -2.0
 	dividend := tickIndex
 	divisor := tickSpacing * TICK_ARRAY_SIZE
-	
+
 	var realIndex int64
 	if dividend >= 0 {
 		realIndex = dividend / divisor
@@ -302,17 +302,17 @@ func getOfficialTickArrayStartIndex(tickIndex int64, tickSpacing int64, offset i
 			realIndex-- // Floor towards negative infinity
 		}
 	}
-	
+
 	startTickIndex := (realIndex + offset) * tickSpacing * TICK_ARRAY_SIZE
 
 	// Bounds check like official implementation but more lenient for edge cases
 	ticksInArray := TICK_ARRAY_SIZE * tickSpacing
-	minTickIndex := MIN_TICK - ((MIN_TICK%ticksInArray)+ticksInArray)
+	minTickIndex := MIN_TICK - ((MIN_TICK % ticksInArray) + ticksInArray)
 
 	// Only validate bounds if they are severely out of range
 	// Allow some flexibility for edge cases as official implementation sometimes returns arrays
 	// that might be slightly out of normal bounds during sequence generation
-	maxBoundary := MAX_TICK + ticksInArray // Allow some buffer
+	maxBoundary := MAX_TICK + ticksInArray     // Allow some buffer
 	minBoundary := minTickIndex - ticksInArray // Allow some buffer
 
 	if startTickIndex < minBoundary {

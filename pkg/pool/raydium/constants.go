@@ -14,9 +14,9 @@ var (
 	MEMO_PROGRAM_ID       = solana.MustPublicKeyFromBase58("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr")
 
 	// Raydium Program IDs
-	RAYDIUM_AMM_PROGRAM_ID  = solana.MustPublicKeyFromBase58("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8")
-	RAYDIUM_CPMM_PROGRAM_ID = solana.MustPublicKeyFromBase58("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C")
-	RAYDIUM_CLMM_PROGRAM_ID = solana.MustPublicKeyFromBase58("CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK")
+	RAYDIUM_AMM_PROGRAM_ID         = solana.MustPublicKeyFromBase58("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8")
+	RAYDIUM_CPMM_PROGRAM_ID        = solana.MustPublicKeyFromBase58("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C")
+	RAYDIUM_CLMM_PROGRAM_ID        = solana.MustPublicKeyFromBase58("CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK")
 	RAYDIUM_CLMM_DEVNET_PROGRAM_ID = solana.MustPublicKeyFromBase58("DRayAUgENGQBKVaX8owNhgzkEDyoHTGVEGHVJT1E9pfH")
 )
 

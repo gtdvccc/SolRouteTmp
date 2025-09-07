@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	" github.com/gtdvccc/SolRouteTmp/pkg"
-	" github.com/gtdvccc/SolRouteTmp/pkg/pool/orca"
-	" github.com/gtdvccc/SolRouteTmp/pkg/sol"
+	"github.com/gtdvccc/SolRouteTmp/pkg"
+	"github.com/gtdvccc/SolRouteTmp/pkg/pool/orca"
+	"github.com/gtdvccc/SolRouteTmp/pkg/sol"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 )
@@ -170,7 +170,7 @@ func (p *OrcaWhirlpoolProtocol) FetchPoolByID(ctx context.Context, poolId string
 func (p *OrcaWhirlpoolProtocol) validatePoolTickArrays(ctx context.Context, pool *orca.WhirlpoolPool) error {
 	// Check both directions (A->B and B->A) to ensure tick arrays are valid
 	directions := []bool{true, false}
-	
+
 	for _, aToB := range directions {
 		// Get required tick array addresses
 		tickArray0, tickArray1, tickArray2, err := orca.DeriveMultipleWhirlpoolTickArrayPDAs(
@@ -182,7 +182,7 @@ func (p *OrcaWhirlpoolProtocol) validatePoolTickArrays(ctx context.Context, pool
 		if err != nil {
 			return fmt.Errorf("failed to derive tick array PDAs: %w", err)
 		}
-		
+
 		// Check if primary tick array exists and is valid
 		tickArrayAddrs := []solana.PublicKey{tickArray0, tickArray1, tickArray2}
 		results, err := p.SolClient.RpcClient.GetMultipleAccountsWithOpts(ctx, tickArrayAddrs, &rpc.GetMultipleAccountsOpts{
@@ -192,24 +192,24 @@ func (p *OrcaWhirlpoolProtocol) validatePoolTickArrays(ctx context.Context, pool
 			// If we can't query tick arrays, it's better to skip this pool
 			return fmt.Errorf("failed to query tick arrays: %w", err)
 		}
-		
+
 		// At least the first tick array must exist
 		if results.Value[0] == nil {
 			return fmt.Errorf("primary tick array missing for direction aToB=%v", aToB)
 		}
-		
+
 		// Try to decode the primary tick array to ensure it's valid
 		tickArray := &orca.WhirlpoolTickArray{}
 		if err := tickArray.Decode(results.Value[0].Data.GetBinary()); err != nil {
 			return fmt.Errorf("invalid tick array data: %w", err)
 		}
-		
+
 		// Basic sanity check on tick array data
 		if err := p.validateTickArraySanity(tickArray, pool); err != nil {
 			return fmt.Errorf("tick array failed sanity check: %w", err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -225,7 +225,7 @@ func (p *OrcaWhirlpoolProtocol) validateTickArraySanity(tickArray *orca.Whirlpoo
 			return fmt.Errorf("tick %d has suspiciously large liquidity_net: %d", i, tick.LiquidityNet)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -234,7 +234,7 @@ func (p *OrcaWhirlpoolProtocol) validateTickArraySanity(tickArray *orca.Whirlpoo
 func (p *OrcaWhirlpoolProtocol) validateCriticalTickArrays(ctx context.Context, pool *orca.WhirlpoolPool) error {
 	// Check both directions to catch missing arrays that would cause 6038 errors
 	directions := []bool{true, false} // A->B and B->A
-	
+
 	for _, aToB := range directions {
 		// Get required tick array addresses
 		tickArray0, tickArray1, tickArray2, err := orca.DeriveMultipleWhirlpoolTickArrayPDAs(
@@ -246,7 +246,7 @@ func (p *OrcaWhirlpoolProtocol) validateCriticalTickArrays(ctx context.Context, 
 		if err != nil {
 			return fmt.Errorf("failed to derive tick array PDAs for direction aToB=%v: %w", aToB, err)
 		}
-		
+
 		// Check all three tick arrays - missing arrays are the main cause of 6038 errors
 		tickArrayAddrs := []solana.PublicKey{tickArray0, tickArray1, tickArray2}
 		results, err := p.SolClient.RpcClient.GetMultipleAccountsWithOpts(ctx, tickArrayAddrs, &rpc.GetMultipleAccountsOpts{
@@ -255,12 +255,12 @@ func (p *OrcaWhirlpoolProtocol) validateCriticalTickArrays(ctx context.Context, 
 		if err != nil {
 			return fmt.Errorf("failed to query tick arrays for direction aToB=%v: %w", aToB, err)
 		}
-		
+
 		// Primary tick array must exist
 		if results.Value[0] == nil {
 			return fmt.Errorf("primary tick array missing for direction aToB=%v", aToB)
 		}
-		
+
 		// For proper swap execution, we need at least the first two tick arrays
 		// Missing tick array 1 or 2 often causes 6038 errors
 		missingArrays := 0
@@ -269,18 +269,18 @@ func (p *OrcaWhirlpoolProtocol) validateCriticalTickArrays(ctx context.Context, 
 				missingArrays++
 			}
 		}
-		
+
 		// If more than one tick array is missing, this pool is problematic
 		if missingArrays > 1 {
 			return fmt.Errorf("too many missing tick arrays (%d) for direction aToB=%v", missingArrays, aToB)
 		}
-		
+
 		// Try to decode the primary tick array to ensure it's valid
 		tickArray := &orca.WhirlpoolTickArray{}
 		if err := tickArray.Decode(results.Value[0].Data.GetBinary()); err != nil {
 			return fmt.Errorf("primary tick array corrupted for direction aToB=%v: %w", aToB, err)
 		}
-		
+
 		// Check for extremely problematic liquidity values that cause underflow
 		for _, tick := range tickArray.Ticks {
 			if tick.LiquidityNet < -1e18 {
@@ -288,6 +288,6 @@ func (p *OrcaWhirlpoolProtocol) validateCriticalTickArrays(ctx context.Context, 
 			}
 		}
 	}
-	
+
 	return nil
 }

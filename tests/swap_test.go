@@ -6,18 +6,18 @@ import (
 	"strings"
 	"testing"
 
-	" github.com/gtdvccc/SolRouteTmp/pkg/pool/orca"
-	" github.com/gtdvccc/SolRouteTmp/pkg/pool/raydium"
-	" github.com/gtdvccc/SolRouteTmp/pkg/protocol"
-	" github.com/gtdvccc/SolRouteTmp/pkg/router"
-	" github.com/gtdvccc/SolRouteTmp/pkg/sol"
-	" github.com/gtdvccc/SolRouteTmp/utils"
 	"cosmossdk.io/math"
 	"github.com/gagliardetto/solana-go"
 	ata "github.com/gagliardetto/solana-go/programs/associated-token-account"
 	computebudget "github.com/gagliardetto/solana-go/programs/compute-budget"
 	"github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/gtdvccc/SolRouteTmp/pkg/pool/orca"
+	"github.com/gtdvccc/SolRouteTmp/pkg/pool/raydium"
+	"github.com/gtdvccc/SolRouteTmp/pkg/protocol"
+	"github.com/gtdvccc/SolRouteTmp/pkg/router"
+	"github.com/gtdvccc/SolRouteTmp/pkg/sol"
+	"github.com/gtdvccc/SolRouteTmp/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +35,7 @@ const (
 	slippageBps     = 100     // 1% slippage protection
 
 	// Compute Budget configuration
-	computeUnitPrice = 1000   // micro lamports per CU
+	computeUnitPrice = 1000    // micro lamports per CU
 	computeUnitLimit = 120_000 // max CUs
 )
 
@@ -52,16 +52,16 @@ type TestSuite struct {
 
 // solscanTxURL builds explorer link with cluster suffix from the suite runtime cluster.
 func (ts *TestSuite) solscanTxURL(sig string) string {
-    if ts.cluster != "" && ts.cluster != "mainnet" {
-        return "https://solscan.io/tx/" + sig + "?cluster=" + ts.cluster
-    }
-    return "https://solscan.io/tx/" + sig
+	if ts.cluster != "" && ts.cluster != "mainnet" {
+		return "https://solscan.io/tx/" + sig + "?cluster=" + ts.cluster
+	}
+	return "https://solscan.io/tx/" + sig
 }
 
 // setupTestSuite initializes test environment and creates Solana client
 func setupTestSuite(t *testing.T) *TestSuite {
-    // Load .env first
-    utils.LoadEnv()
+	// Load .env first
+	utils.LoadEnv()
 	// Get private key from environment variable
 	privateKeyStr := os.Getenv("SOLANA_PRIVATE_KEY")
 	require.NotEmpty(t, privateKeyStr, "SOLANA_PRIVATE_KEY environment variable is required")
@@ -172,7 +172,7 @@ func (ts *TestSuite) setupTokenAccounts(t *testing.T) solana.PublicKey {
 		err = ts.solClient.CoverWsol(ts.ctx, ts.privateKey, 10000000)
 		require.NoError(t, err, "Failed to cover wsol")
 		t.Log("Successfully covered WSOL")
-		
+
 		// Verify balance after covering
 		newBalance, err := ts.solClient.GetUserTokenBalance(ts.ctx, ts.privateKey.PublicKey(), sol.WSOL)
 		if err == nil {
@@ -524,7 +524,7 @@ func TestSOLPriceCalculation(t *testing.T) {
 	t.Logf("SOL->USDC: 1 SOL = %v USDC", priceFromSOLToUSDC)
 	t.Logf("Pool used: %v", bestPool1.GetID())
 
-	// 2. USDC -> SOL direction  
+	// 2. USDC -> SOL direction
 	t.Log("\n--- USDC -> SOL Direction ---")
 	pools2, err := ts.router.QueryAllPools(ts.ctx, usdcTokenAddr, sol.WSOL.String())
 	require.NoError(t, err, "Failed to query pools for USDC->SOL")
@@ -552,8 +552,8 @@ func TestSOLPriceCalculation(t *testing.T) {
 	// Calculate deviations
 	deviationSOLToUSDC := priceFromSOLToUSDC.Sub(expectedPrice).Abs().Mul(math.NewInt(100)).Quo(expectedPrice)
 	deviationUSDCToSOL := priceFromUSDCToSOL.Sub(expectedPrice).Abs().Mul(math.NewInt(100)).Quo(expectedPrice)
-	
-t.Logf("SOL->USDC deviation: %v%%", deviationSOLToUSDC)
+
+	t.Logf("SOL->USDC deviation: %v%%", deviationSOLToUSDC)
 	t.Logf("USDC->SOL deviation: %v%%", deviationUSDCToSOL)
 
 	// Validate that our prices are reasonable (within 10% of reference)
@@ -564,6 +564,6 @@ t.Logf("SOL->USDC deviation: %v%%", deviationSOLToUSDC)
 	priceDifference := priceFromSOLToUSDC.Sub(priceFromUSDCToSOL).Abs()
 	priceDifferencePercent := priceDifference.Mul(math.NewInt(100)).Quo(priceFromSOLToUSDC.Add(priceFromUSDCToSOL).Quo(math.NewInt(2)))
 	t.Logf("Price difference between directions: %v%%", priceDifferencePercent)
-	
+
 	assert.True(t, priceDifferencePercent.LT(math.NewInt(5)), "Prices from both directions should be within 5%% of each other")
 }

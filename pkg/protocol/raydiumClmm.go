@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	" github.com/gtdvccc/SolRouteTmp/pkg"
-	" github.com/gtdvccc/SolRouteTmp/pkg/pool/raydium"
-	" github.com/gtdvccc/SolRouteTmp/pkg/sol"
+	"github.com/gtdvccc/SolRouteTmp/pkg"
+	"github.com/gtdvccc/SolRouteTmp/pkg/pool/raydium"
+	"github.com/gtdvccc/SolRouteTmp/pkg/sol"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
