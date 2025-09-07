@@ -3,7 +3,7 @@ package pump
 import (
 	"fmt"
 
-	"github.com/Solana-ZH/solroute/pkg/sol"
+	" github.com/gtdvccc/SolRouteTmp/pkg/sol"
 	"github.com/gagliardetto/solana-go"
 )
 

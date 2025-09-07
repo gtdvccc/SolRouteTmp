@@ -7,9 +7,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Solana-ZH/solroute/pkg"
-	"github.com/Solana-ZH/solroute/pkg/pool/raydium"
-	"github.com/Solana-ZH/solroute/pkg/sol"
+	" github.com/gtdvccc/SolRouteTmp/pkg"
+	" github.com/gtdvccc/SolRouteTmp/pkg/pool/raydium"
+	" github.com/gtdvccc/SolRouteTmp/pkg/sol"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 )

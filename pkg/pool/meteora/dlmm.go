@@ -6,8 +6,8 @@ import (
 	"math/big"
 	"unsafe"
 
-	"github.com/Solana-ZH/solroute/pkg"
-	"github.com/Solana-ZH/solroute/pkg/sol"
+	" github.com/gtdvccc/SolRouteTmp/pkg"
+	" github.com/gtdvccc/SolRouteTmp/pkg/sol"
 	"github.com/gagliardetto/solana-go"
 )
 
